@@ -53,10 +53,10 @@ public class CloudAggregatorService {
         aggregator.registerObserver(new AlertObserver(aggregator));
 
         // Register a bridge observer to route updates to dynamic Spring SSE clients
-        aggregator.registerObserver((packet, snapshot) -> {
+        aggregator.registerObserver((packet, sensorSnapshot, typeSnapshot) -> {
             for (TelemetryObserver observer : sseObservers) {
                 try {
-                    observer.onTelemetryReceived(packet, snapshot);
+                    observer.onTelemetryReceived(packet, sensorSnapshot, typeSnapshot);
                 } catch (Exception e) {
                     // Failures in SSE connections are handled by the controller removing them
                 }

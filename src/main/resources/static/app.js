@@ -236,11 +236,11 @@ function updateConnectionUI(status, label) {
 
 // Handles incoming JSON update message
 function handleTelemetryUpdate(event) {
-    const { packet, snapshot, isAlert, alertMessage } = event;
+    const { packet, sensorSnapshot, typeSnapshot, isAlert, alertMessage } = event;
     const type = packet.sensorType.toLowerCase(); // 'temperature', 'humidity', 'pressure'
     
-    // 1. Update Aggregate Cards
-    updateAggregateCard(type, snapshot);
+    // 1. Update Aggregate Cards using global type aggregates
+    updateAggregateCard(type, typeSnapshot);
 
     // 2. Log in Terminal View
     const cleanPayload = JSON.stringify({

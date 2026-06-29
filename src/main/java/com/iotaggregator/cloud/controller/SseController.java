@@ -83,7 +83,7 @@ public class SseController {
      * Broadcasts the processed telemetry and running metrics snapshot to all connected clients.
      * Executed asynchronously in the sseExecutor context.
      */
-    private void broadcastEvent(TelemetryPacket packet, MetricSnapshot snapshot) {
+    private void broadcastEvent(TelemetryPacket packet, MetricSnapshot sensorSnapshot, MetricSnapshot typeSnapshot) {
         if (emitters.isEmpty()) return;
 
         // Submit the broadcast task to the dedicated sse executor
@@ -95,7 +95,7 @@ public class SseController {
                     String.format("Critical value of %.2f %s breached threshold (%.2f %s)", value, packet.getUnit(), threshold, packet.getUnit()) 
                     : null;
 
-            TelemetryEvent event = new TelemetryEvent(packet, snapshot, isAlert, alertMessage);
+            TelemetryEvent event = new TelemetryEvent(packet, sensorSnapshot, typeSnapshot, isAlert, alertMessage);
 
             ListToRemove listToRemove = new ListToRemove();
             for (SseEmitter emitter : emitters) {
@@ -126,13 +126,15 @@ public class SseController {
 
     public static class TelemetryEvent {
         private final TelemetryPacket packet;
-        private final MetricSnapshot snapshot;
+        private final MetricSnapshot sensorSnapshot;
+        private final MetricSnapshot typeSnapshot;
         private final boolean isAlert;
         private final String alertMessage;
 
-        public TelemetryEvent(TelemetryPacket packet, MetricSnapshot snapshot, boolean isAlert, String alertMessage) {
+        public TelemetryEvent(TelemetryPacket packet, MetricSnapshot sensorSnapshot, MetricSnapshot typeSnapshot, boolean isAlert, String alertMessage) {
             this.packet = packet;
-            this.snapshot = snapshot;
+            this.sensorSnapshot = sensorSnapshot;
+            this.typeSnapshot = typeSnapshot;
             this.isAlert = isAlert;
             this.alertMessage = alertMessage;
         }
@@ -141,8 +143,12 @@ public class SseController {
             return packet;
         }
 
-        public MetricSnapshot getSnapshot() {
-            return snapshot;
+        public MetricSnapshot getSensorSnapshot() {
+            return sensorSnapshot;
+        }
+
+        public MetricSnapshot getTypeSnapshot() {
+            return typeSnapshot;
         }
 
         public boolean getIsAlert() {

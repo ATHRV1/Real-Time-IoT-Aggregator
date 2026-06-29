@@ -93,7 +93,7 @@ public class ConcurrencyTest {
         CountDownLatch observerLatch = new CountDownLatch(totalPackets);
 
         // Register custom test observer
-        aggregator.registerObserver((packet, snapshot) -> {
+        aggregator.registerObserver((packet, sensorSnapshot, typeSnapshot) -> {
             notificationCount.incrementAndGet();
             observerLatch.countDown();
         });

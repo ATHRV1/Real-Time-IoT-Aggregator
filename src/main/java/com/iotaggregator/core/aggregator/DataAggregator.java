@@ -3,6 +3,7 @@ package com.iotaggregator.core.aggregator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.iotaggregator.core.broker.MqttSubscriber;
 import com.iotaggregator.core.model.MetricSnapshot;
+import com.iotaggregator.core.model.SensorType;
 import com.iotaggregator.core.model.TelemetryPacket;
 import com.iotaggregator.core.observer.TelemetryObserver;
 import com.iotaggregator.core.observer.TelemetrySubject;
@@ -21,6 +22,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class DataAggregator implements MqttSubscriber, TelemetrySubject {
     private final ConcurrentHashMap<String, RunningMetrics> sensorMetrics = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<SensorType, RunningMetrics> typeMetrics = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Double> customThresholds = new ConcurrentHashMap<>();
     
     // Bounded queue to absorb pressure peaks and prevent OutOfMemoryErrors
@@ -91,20 +93,24 @@ public class DataAggregator implements MqttSubscriber, TelemetrySubject {
      */
     private void processPacket(TelemetryPacket packet) {
         String sensorId = packet.getSensorId();
+        SensorType type = packet.getSensorType();
         
-        // Atomically retrieve or construct RunningMetrics
+        // Atomically retrieve or construct RunningMetrics for individual sensor
         RunningMetrics metrics = sensorMetrics.computeIfAbsent(sensorId, id -> 
-            new RunningMetrics(id, packet.getSensorType(), packet.getUnit())
+            new RunningMetrics(id, type, packet.getUnit())
         );
-
-        // Thread-safe update under Write Lock
         metrics.update(packet.getValue(), packet.getTimestamp());
+        MetricSnapshot sensorSnapshot = metrics.getSnapshot();
 
-        // Thread-safe read under Read Lock
-        MetricSnapshot snapshot = metrics.getSnapshot();
+        // Atomically retrieve or construct RunningMetrics for global sensor type
+        RunningMetrics typeMetric = typeMetrics.computeIfAbsent(type, t ->
+            new RunningMetrics(t.name(), t, packet.getUnit())
+        );
+        typeMetric.update(packet.getValue(), packet.getTimestamp());
+        MetricSnapshot typeSnapshot = typeMetric.getSnapshot();
 
-        // Notify observers
-        notifyObservers(packet, snapshot);
+        // Notify observers with both individual and global snapshots
+        notifyObservers(packet, sensorSnapshot, typeSnapshot);
     }
 
     // --- Dynamic Alarm/Threshold Controls ---
@@ -138,10 +144,10 @@ public class DataAggregator implements MqttSubscriber, TelemetrySubject {
     }
 
     @Override
-    public void notifyObservers(TelemetryPacket packet, MetricSnapshot snapshot) {
+    public void notifyObservers(TelemetryPacket packet, MetricSnapshot sensorSnapshot, MetricSnapshot typeSnapshot) {
         for (TelemetryObserver observer : observers) {
             try {
-                observer.onTelemetryReceived(packet, snapshot);
+                observer.onTelemetryReceived(packet, sensorSnapshot, typeSnapshot);
             } catch (Exception e) {
                 System.err.printf("[Observer Notification Error] Observer %s failed: %s%n", 
                         observer.getClass().getSimpleName(), e.getMessage());
@@ -166,6 +172,7 @@ public class DataAggregator implements MqttSubscriber, TelemetrySubject {
 
     public void clearMetrics() {
         sensorMetrics.clear();
+        typeMetrics.clear();
         ingestionQueue.clear();
     }
 

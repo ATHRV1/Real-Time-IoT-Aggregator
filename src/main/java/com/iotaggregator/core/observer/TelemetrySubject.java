@@ -21,5 +21,5 @@ public interface TelemetrySubject {
     /**
      * Notifies all registered observers of a new processed telemetry event.
      */
-    void notifyObservers(TelemetryPacket packet, MetricSnapshot snapshot);
+    void notifyObservers(TelemetryPacket packet, MetricSnapshot sensorSnapshot, MetricSnapshot typeSnapshot);
 }

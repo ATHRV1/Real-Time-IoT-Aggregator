@@ -17,7 +17,7 @@ public class AlertObserver implements TelemetryObserver {
     }
 
     @Override
-    public void onTelemetryReceived(TelemetryPacket packet, MetricSnapshot snapshot) {
+    public void onTelemetryReceived(TelemetryPacket packet, MetricSnapshot sensorSnapshot, MetricSnapshot typeSnapshot) {
         double value = packet.getValue();
         double threshold = aggregator.getActiveThreshold(packet.getSensorId(), packet);
 

@@ -81,8 +81,8 @@ public class ObserverPatternTest {
         final List<EventHolder> receivedEvents = new ArrayList<>();
 
         @Override
-        public void onTelemetryReceived(TelemetryPacket packet, MetricSnapshot snapshot) {
-            receivedEvents.add(new EventHolder(packet, snapshot));
+        public void onTelemetryReceived(TelemetryPacket packet, MetricSnapshot sensorSnapshot, MetricSnapshot typeSnapshot) {
+            receivedEvents.add(new EventHolder(packet, sensorSnapshot));
         }
     }
 

@@ -13,34 +13,34 @@ Below is the event-driven data flow of the application. The system decouples tel
 ```mermaid
 graph TD
     %% Sensors Layer
-    subgraph Sensors [IoT Sensor Simulator Threads]
-        S1[Temp Sensor Lobby 1] -- Runnable (Periodic) --> B
-        S2[Hum Sensor Lobby 1] -- Runnable (Periodic) --> B
-        S3[Press Sensor Lobby 1] -- Runnable (Periodic) --> B
-        S4[Temp Server Room] -- Runnable (Periodic) --> B
+    subgraph Sensors ["IoT Sensor Simulator Threads"]
+        S1["Temp Sensor Lobby 1"] -- "Runnable (Periodic)" --> B
+        S2["Hum Sensor Lobby 1"] -- "Runnable (Periodic)" --> B
+        S3["Press Sensor Lobby 1"] -- "Runnable (Periodic)" --> B
+        S4["Temp Server Room"] -- "Runnable (Periodic)" --> B
     end
 
     %% Broker Layer
-    subgraph In-Memory Broker [MQTT Broker Simulator]
-        B{Topic Matcher} -- Asynchronous Delivery Pool (4 Threads) --> DA
+    subgraph In-Memory Broker ["MQTT Broker Simulator"]
+        B{"Topic Matcher"} -- "Asynchronous Delivery Pool (4 Threads)" --> DA
     end
 
     %% Aggregation Pipeline
-    subgraph Ingestion Pipeline [DataAggregator Engine]
-        DA[DataAggregator: onMessage] -- Parse JSON & offer() --> Q[LinkedBlockingQueue (Capacity: 2000)]
-        WP[Aggregator Workers (4 Threads)] -- take() & process --> RM[RunningMetrics: Lock-splitting / Welford]
+    subgraph Ingestion Pipeline ["DataAggregator Engine"]
+        DA["DataAggregator: onMessage"] -- "Parse JSON & offer()" --> Q["LinkedBlockingQueue (Capacity: 2000)"]
+        WP["Aggregator Workers (4 Threads)"] -- "take() & process" --> RM["RunningMetrics: Lock-splitting / Welford"]
     end
 
     %% Observers / Dashboard Layer
-    subgraph Notification Layer [Observer Dispatcher]
-        RM -- notifyObservers() --> CD[ConsoleDashboardObserver]
-        RM -- notifyObservers() --> AO[AlertObserver]
-        RM -- notifyObservers() --> SC[SseController: SSE Streamer]
+    subgraph Notification Layer ["Observer Dispatcher"]
+        RM -- "notifyObservers()" --> CD["ConsoleDashboardObserver"]
+        RM -- "notifyObservers()" --> AO["AlertObserver"]
+        RM -- "notifyObservers()" --> SC["SseController: SSE Streamer"]
     end
 
     %% Clients
-    subgraph Client Layer [Browser UI]
-        SC -- Async SSE Broadcast Executor --> CL[Connected Web Clients]
+    subgraph Client Layer ["Browser UI"]
+        SC -- "Async SSE Broadcast Executor" --> CL["Connected Web Clients"]
     end
 ```
 

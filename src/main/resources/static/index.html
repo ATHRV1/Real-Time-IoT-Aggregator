@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-time IoT Sensor Data Aggregator</title>
+    <!-- Modern Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="glass-bg"></div>
+    
+    <div class="app-container">
+        <!-- HEADER -->
+        <header class="app-header">
+            <div class="header-logo">
+                <h1>Real-Time IoT Aggregator</h1>
+            </div>
+            <div class="header-meta" style="display: none;">
+                <div id="connection-status" class="status-indicator offline">
+                    <span class="status-dot"></span>
+                    <span class="status-text">Disconnected</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- LIVE METRICS GRID -->
+        <section class="metrics-grid">
+            <!-- TEMPERATURE AGGREGATE -->
+            <div class="metric-card temp-card">
+                <div class="card-glow"></div>
+                <div class="card-header">
+                    <h2>Temperature Summary</h2>
+                </div>
+                <div class="card-body">
+                    <div class="main-metric">
+                        <span id="temp-avg">0.00</span><span class="unit">°C</span>
+                    </div>
+                    <p class="label">Running Average</p>
+                    <div class="sub-metrics">
+                        <div class="sub-item">
+                            <span class="sub-label">Min</span>
+                            <span id="temp-min" class="sub-val">0.00</span>
+                        </div>
+                        <div class="sub-item">
+                            <span class="sub-label">Max</span>
+                            <span id="temp-max" class="sub-val">0.00</span>
+                        </div>
+                        <div class="sub-item">
+                            <span class="sub-label">Std Dev</span>
+                            <span id="temp-stddev" class="sub-val">0.00</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span id="temp-count">0</span> packets aggregated
+                </div>
+            </div>
+
+            <!-- HUMIDITY AGGREGATE -->
+            <div class="metric-card hum-card">
+                <div class="card-glow"></div>
+                <div class="card-header">
+                    <h2>Humidity Summary</h2>
+                </div>
+                <div class="card-body">
+                    <div class="main-metric">
+                        <span id="hum-avg">0.00</span><span class="unit">%</span>
+                    </div>
+                    <p class="label">Running Average</p>
+                    <div class="sub-metrics">
+                        <div class="sub-item">
+                            <span class="sub-label">Min</span>
+                            <span id="hum-min" class="sub-val">0.00</span>
+                        </div>
+                        <div class="sub-item">
+                            <span class="sub-label">Max</span>
+                            <span id="hum-max" class="sub-val">0.00</span>
+                        </div>
+                        <div class="sub-item">
+                            <span class="sub-label">Std Dev</span>
+                            <span id="hum-stddev" class="sub-val">0.00</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span id="hum-count">0</span> packets aggregated
+                </div>
+            </div>
+
+            <!-- PRESSURE AGGREGATE -->
+            <div class="metric-card press-card">
+                <div class="card-glow"></div>
+                <div class="card-header">
+                    <h2>Pressure Summary</h2>
+                </div>
+                <div class="card-body">
+                    <div class="main-metric">
+                        <span id="press-avg">0.00</span><span class="unit">hPa</span>
+                    </div>
+                    <p class="label">Running Average</p>
+                    <div class="sub-metrics">
+                        <div class="sub-item">
+                            <span class="sub-label">Min</span>
+                            <span id="press-min" class="sub-val">0.00</span>
+                        </div>
+                        <div class="sub-item">
+                            <span class="sub-label">Max</span>
+                            <span id="press-max" class="sub-val">0.00</span>
+                        </div>
+                        <div class="sub-item">
+                            <span class="sub-label">Std Dev</span>
+                            <span id="press-stddev" class="sub-val">0.00</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span id="press-count">0</span> packets aggregated
+                </div>
+            </div>
+        </section>
+
+        <!-- CONTROLS & MONITORING AREA -->
+        <main class="control-board">
+            
+            <!-- LEFT COLUMN: SENSOR CONTROL -->
+            <div class="control-panel glass-panel">
+                <h3>Thread Manager & Sensor Config</h3>
+                
+                <!-- SPAWN SENSOR FORM -->
+                <form id="spawn-sensor-form" class="control-form">
+                    <h4>Spawn Dynamic Sensor Thread</h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="sensor-id">Sensor ID</label>
+                            <input type="text" id="sensor-id" placeholder="e.g. temp-hvac-02" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="sensor-type">Sensor Type</label>
+                            <select id="sensor-type" required>
+                                <option value="TEMPERATURE">Temperature</option>
+                                <option value="HUMIDITY">Humidity</option>
+                                <option value="PRESSURE">Pressure</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row optional-row">
+                        <div class="form-group">
+                            <label for="sensor-baseline">Baseline (Optional)</label>
+                            <input type="number" step="0.01" id="sensor-baseline" placeholder="e.g. 21.0">
+                        </div>
+                        <div class="form-group">
+                            <label for="sensor-amplitude">Fluct. Amp (Optional)</label>
+                            <input type="number" step="0.01" id="sensor-amplitude" placeholder="e.g. 4.0">
+                        </div>
+                        <div class="form-group">
+                            <label for="sensor-interval">Interval Ms (Optional)</label>
+                            <input type="number" id="sensor-interval" placeholder="e.g. 1000">
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">Spawn Thread</button>
+                </form>
+
+                <hr class="divider">
+
+                <!-- ACTIVE THREADS LIST -->
+                <div class="active-sensors-section">
+                    <h4>Active Sensor Threads</h4>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Sensor ID</th>
+                                    <th>Type</th>
+                                    <th>Baseline</th>
+                                    <th>Interval</th>
+                                    <th>Alert Threshold</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="active-sensors-list">
+                                <tr>
+                                    <td colspan="6" class="empty-message">Fetching active threads...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT COLUMN: REAL-TIME FEED & ALARMS -->
+            <div class="feed-panel">
+                
+                <!-- CRITICAL ALARMS FEED -->
+                <div class="glass-panel alerts-panel">
+                    <div class="panel-header">
+                        <h3>Critical Alarms Feed</h3>
+                        <button id="clear-alerts" class="btn btn-secondary btn-sm">Clear</button>
+                    </div>
+                    <div id="alerts-feed" class="alert-log-container">
+                        <div class="empty-log">System running normal. No alarms triggered.</div>
+                    </div>
+                </div>
+
+                <!-- LIVE RAW PACKET FEED -->
+                <div class="glass-panel raw-feed-panel">
+                    <div class="panel-header">
+                        <h3>Asynchronous Telemetry Log</h3>
+                        <span id="queue-indicator" class="badge">Ingest Queue: 0</span>
+                    </div>
+                    <div id="telemetry-log" class="terminal-log-container">
+                        <div class="terminal-handshake">// Establishing thread subscriber websocket/SSE stream...</div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Dynamic Alert Dialog for Threshold Adjustments -->
+    <div id="threshold-modal" class="modal">
+        <div class="modal-content glass-panel">
+            <h4>Update Alert Threshold</h4>
+            <p>Modify threshold limits for sensor: <strong id="modal-sensor-id"></strong></p>
+            <div class="form-group">
+                <label for="modal-threshold-val">New Alert Threshold</label>
+                <input type="number" step="0.01" id="modal-threshold-val" required>
+            </div>
+            <div class="modal-actions">
+                <button id="modal-cancel" class="btn btn-secondary">Cancel</button>
+                <button id="modal-save" class="btn btn-primary">Save Threshold</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

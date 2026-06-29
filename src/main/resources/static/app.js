@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
     spawnSensorForm.addEventListener('submit', handleSpawnSensor);
     
     // Clear alerts
-    clearAlertsBtn.addEventListener('clear-alerts', () => {
+    clearAlertsBtn.addEventListener('click', () => {
         alertsFeed.innerHTML = '<div class="empty-log">System running normal. No alarms triggered.</div>';
         activeAlertsCount = 0;
     });
